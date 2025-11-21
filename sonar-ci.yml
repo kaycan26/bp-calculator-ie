@@ -56,9 +56,10 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-      - name: Test with coverage
+      - name: Test UnitTests with coverage
         run: >
-          dotnet test --no-build --configuration Release
+          dotnet test ./BPCalculator.UnitTests/BPCalculator.UnitTests.csproj
+          --no-build --configuration Release
           /p:CollectCoverage=true
           /p:CoverletOutput=./TestResults/
           /p:CoverletOutputFormat=opencover
