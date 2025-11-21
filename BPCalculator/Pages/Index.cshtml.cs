@@ -7,8 +7,19 @@ namespace BPCalculator.Pages
 {
     public class BloodPressureModel : PageModel
     {
-        [BindProperty]                              // bound on POST
+        [BindProperty] // bound on POST
         public BloodPressure BP { get; set; }
+
+        // ---- BMI NEW FEATURE PROPERTIES ----
+        [BindProperty]
+        public double? HeightCm { get; set; }
+
+        [BindProperty]
+        public double? WeightKg { get; set; }
+
+        public double? BMI { get; private set; }
+
+        public string BMICategory { get; private set; }
 
         // setup initial data
         public void OnGet()
@@ -19,11 +30,29 @@ namespace BPCalculator.Pages
         // POST, validate
         public IActionResult OnPost()
         {
-            // extra validation
+            // extra validation for blood pressure
             if (!(BP.Systolic > BP.Diastolic))
             {
                 ModelState.AddModelError("", "Systolic must be greater than Diastolic");
             }
+
+            // ---- BMI new feature logic ----
+            if (HeightCm.HasValue && HeightCm > 0 &&
+                WeightKg.HasValue && WeightKg > 0)
+            {
+                var (bmi, category) = BMICalculator.Calculate(
+                    HeightCm.Value,
+                    WeightKg.Value);
+
+                BMI = bmi;
+                BMICategory = category;
+            }
+            else
+            {
+                BMI = null;
+                BMICategory = null;
+            }
+
             return Page();
         }
     }
