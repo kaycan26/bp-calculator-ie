@@ -56,12 +56,34 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-      - name: Test with coverage
+      # ---- Tests ----
+      # Unit tests with coverage (for SonarCloud)
+      - name: Unit tests with coverage
         run: >
-          dotnet test --no-build --configuration Release
+          dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj
+          --no-build --configuration Release
           /p:CollectCoverage=true
           /p:CoverletOutput=./TestResults/
           /p:CoverletOutputFormat=opencover
+
+      # BDD tests
+      - name: BDD tests
+        run: >
+          dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj
+          --no-build --configuration Release
+
+      # Playwright UI tests
+      - name: Playwright tests
+        run: >
+          dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj
+          --no-build --configuration Release
+
+      # Selenium UI tests
+      - name: Selenium tests
+        run: >
+          dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj
+          --no-build --configuration Release
+      # ---- End tests ----
 
       # ---- SonarCloud end ----
       - name: SonarCloud - End analysis
