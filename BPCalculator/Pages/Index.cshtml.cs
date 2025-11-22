@@ -23,6 +23,8 @@ namespace BPCalculator.Pages
         public string BMICssClass { get; private set; }
         public string BMIAdvice { get; private set; }
 
+        // trigger workflow run
+
         // setup initial data
         public void OnGet()
         {
