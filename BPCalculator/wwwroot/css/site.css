@@ -1,71 +1,58 @@
-﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-for details on configuring this project to bundle and minify static web assets. */
+﻿/* ---------- Result Panels (BP + BMI) ---------- */
 
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
-}
-
-/* Provide sufficient contrast against white background */
-a {
-  color: #0366d6;
+.bp-result-panel,
+.bmi-result-panel {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    color: #222;
+    line-height: 1.4;
 }
 
-.btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+/* BP COLOUR THEMES */
+.bp-low {
+    background-color: #b3e5fc !important; /* light blue */
+    border-left: 5px solid #0277bd !important; /* blue */
 }
 
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+.bp-ideal {
+    background-color: #c8f7d4 !important; /* light green */
+    border-left: 5px solid #2e8b57 !important; /* dark green */
 }
 
-/* Sticky footer styles
--------------------------------------------------- */
-html {
-  font-size: 14px;
-}
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+.bp-prehigh {
+    background-color: #ffe9bf !important; /* light orange */
+    border-left: 5px solid #ff9800 !important; /* orange */
 }
 
-.border-top {
-  border-top: 1px solid #e5e5e5;
-}
-.border-bottom {
-  border-bottom: 1px solid #e5e5e5;
+.bp-high {
+    background-color: #ffcdd2 !important; /* light red */
+    border-left: 5px solid #c62828 !important; /* red */
 }
 
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+/* BMI COLOUR THEMES */
+.bmi-underweight {
+    background-color: #b3e5fc !important;
+    border-left: 5px solid #0277bd !important;
 }
 
-button.accept-policy {
-  font-size: 1rem;
-  line-height: inherit;
+.bmi-normal {
+    background-color: #c8f7d4 !important;
+    border-left: 5px solid #2e8b57 !important;
 }
 
-/* Sticky footer styles
--------------------------------------------------- */
-html {
-  position: relative;
-  min-height: 100%;
+.bmi-overweight {
+    background-color: #ffe9bf !important;
+    border-left: 5px solid #ff9800 !important;
 }
 
-body {
-  /* Margin bottom by footer height */
-  margin-bottom: 60px;
+.bmi-obese {
+    background-color: #ffcdd2 !important;
+    border-left: 5px solid #c62828 !important;
 }
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px; /* Vertically center the text there */
+
+.bmi-unknown {
+    background-color: #f5f5f5 !important;
+    border-left: 5px solid #aaaaaa !important;
 }

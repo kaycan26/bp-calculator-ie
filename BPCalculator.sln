@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BPCalculator.PlaywrightTest
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BPCalculator.SeleniumTests", "BPCalculator.SeleniumTests\BPCalculator.SeleniumTests.vbproj", "{E305B2F5-9758-4AF8-927E-0CA366CDA494}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BPCalculator.PerformanceTests", "BPCalculator.PerformanceTests\BPCalculator.PerformanceTests.csproj", "{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,18 @@ Global
 		{E305B2F5-9758-4AF8-927E-0CA366CDA494}.Release|x64.Build.0 = Release|Any CPU
 		{E305B2F5-9758-4AF8-927E-0CA366CDA494}.Release|x86.ActiveCfg = Release|Any CPU
 		{E305B2F5-9758-4AF8-927E-0CA366CDA494}.Release|x86.Build.0 = Release|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Debug|x64.Build.0 = Debug|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Debug|x86.Build.0 = Debug|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Release|x64.ActiveCfg = Release|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Release|x64.Build.0 = Release|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Release|x86.ActiveCfg = Release|Any CPU
+		{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

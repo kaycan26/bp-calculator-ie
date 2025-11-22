@@ -1,82 +1,71 @@
-Imports System
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Imports OpenQA.Selenium
 Imports OpenQA.Selenium.Chrome
+Imports OpenQA.Selenium.Support.UI
 
-' Alias to avoid Assert ambiguity if xUnit is ever referenced
-Imports MsAssert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert
+<TestClass>
+Public Class BloodPressureSeleniumTests
 
-Namespace BPCalculator.SeleniumTests
+    Private driver As IWebDriver
+    Private wait As WebDriverWait
+    Private baseUrl As String = "http://localhost:5000"
 
-    <TestClass>
-    Public Class BloodPressureSeleniumTests
+    <TestInitialize>
+    Public Sub SetUp()
+        Dim options As New ChromeOptions()
+        options.AddArgument("--headless=new")
+        options.AddArgument("--no-sandbox")
+        options.AddArgument("--disable-gpu")
 
-        Private _driver As IWebDriver
+        driver = New ChromeDriver(options)
+        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5)
+        wait = New WebDriverWait(driver, TimeSpan.FromSeconds(10))
+    End Sub
 
-        <TestInitialize>
-        Public Sub SetUp()
-            Dim options As New ChromeOptions()
-            options.AddArgument("--headless=new")       ' run headless for CI
-            options.AddArgument("--no-sandbox")
-            options.AddArgument("--disable-dev-shm-usage")
+    <TestCleanup>
+    Public Sub TearDown()
+        If driver IsNot Nothing Then
+            driver.Quit()
+        End If
+    End Sub
 
-            _driver = New ChromeDriver(options)
+    <TestMethod>
+    Public Sub BpCalculator_Displays_Ideal_For_100_60()
 
-            ' Simple implicit wait to give the page time to render elements
-            _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5)
-        End Sub
+        driver.Navigate().GoToUrl(baseUrl)
 
-        <TestCleanup>
-        Public Sub TearDown()
-            If _driver IsNot Nothing Then
-                _driver.Quit()
-            End If
-        End Sub
+        ' Fill systolic
+        Dim systolic = driver.FindElement(By.Id("BP_Systolic"))
+        systolic.Clear()
+        systolic.SendKeys("100")
 
-        <TestMethod>
-        Public Sub BpCalculator_Displays_Ideal_For_100_60()
-            ' NOTE: Make sure the BPCalculator web app is running at http://localhost:5000
-            _driver.Navigate().GoToUrl("http://localhost:5000/")
+        ' Fill diastolic
+        Dim diastolic = driver.FindElement(By.Id("BP_Diastolic"))
+        diastolic.Clear()
+        diastolic.SendKeys("60")
 
-            ' Fill in BP values
-            Dim systolic = _driver.FindElement(By.Name("BP.Systolic"))
-            systolic.Clear()
-            systolic.SendKeys("100")
+        ' Submit
+        Dim submitButton = driver.FindElement(By.CssSelector("input[type='submit']"))
+        submitButton.Click()
 
-            Dim diastolic = _driver.FindElement(By.Name("BP.Diastolic"))
-            diastolic.Clear()
-            diastolic.SendKeys("60")
+        ' Wait for the BP result panel
+        Dim bpResultDiv = wait.Until(Function(d)
+                                         Try
+                                             Dim el = d.FindElement(By.Id("bpResult"))
+                                             Return If(el.Displayed, el, Nothing)
+                                         Catch
+                                             Return Nothing
+                                         End Try
+                                     End Function)
 
-            ' Submit the form
-            Dim submit = _driver.FindElement(By.CssSelector("input[type='submit']"))
-            submit.Click()
+        Assert.IsNotNull(bpResultDiv, "BP result div not found.")
 
-            ' Read the BP result with a small retry loop to avoid stale-element issues
-            Dim text As String = GetResultTextWithRetry()
+        Dim resultText As String = bpResultDiv.Text
 
-            MsAssert.AreEqual("Ideal", text, $"Expected BP category 'Ideal' but got '{text}'")
-        End Sub
+        ' Expected: "Ideal"
+        Assert.IsTrue(resultText.Contains("Ideal"),
+                      $"Expected BP category 'Ideal' but got '{resultText}'")
 
-        ' Helper to handle StaleElementReferenceException if the result div is re-rendered
-        Private Function GetResultTextWithRetry() As String
-            Dim attempts As Integer = 0
+    End Sub
 
-            While True
-                Try
-                    Dim bpResultDiv = _driver.FindElement(By.Id("bpResult"))
-                    Return bpResultDiv.Text
-                Catch ex As StaleElementReferenceException
-                    attempts += 1
-                    If attempts >= 3 Then
-                        Throw
-                    End If
-
-                    ' wait a tiny bit before trying again
-                    Threading.Thread.Sleep(500)
-                End Try
-            End While
-        End Function
-
-    End Class
-
-End Namespace
+End Class

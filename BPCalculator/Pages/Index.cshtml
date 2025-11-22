@@ -1,14 +1,14 @@
 ﻿@page
 @model BPCalculator.Pages.BloodPressureModel
+@using BPCalculator
 
 @{
     ViewData["Title"] = "BP Category Calculator";
 
-    string resultClass = "";
-    // default BMI result style (neutral)
+    // BP Bootstrap classes (required for Selenium test compatibility)
+    string resultClass = "alert alert-secondary";
     string bmiResultClass = "alert alert-secondary";
 
-    // BP result colour
     if (ViewData.ModelState.IsValid && Model.BP != null)
     {
         switch (Model.BP.Category)
@@ -31,8 +31,7 @@
         }
     }
 
-    // BMI result colour
-    if (Model.BMI.HasValue)
+    if (Model.BMI.HasValue && !string.IsNullOrEmpty(Model.BMICategory))
     {
         bmiResultClass = Model.BMICategory == "Normal"
             ? "alert alert-success"
@@ -63,7 +62,7 @@
                         <span asp-validation-for="BP.Diastolic" class="text-danger"></span>
                     </div>
 
-                    <!-- BMI inputs under BP section -->
+                    <!-- BMI Inputs -->
                     <h5 class="mt-4">BMI Calculator</h5>
 
                     <div class="form-group">
@@ -83,24 +82,37 @@
                     </div>
                 </form>
 
-                @* BP result *@
+                <!-- BP RESULT PANEL (Test-Compatible) -->
                 @if (ViewData.ModelState.IsValid && Model.BP != null)
                 {
                     <div class="form-group mt-3">
                         <label>BP Result:</label>
+
+                        <!-- THIS DIV is what Selenium checks: must be exactly "Ideal" / "Low" etc. -->
                         <div id="bpResult" class="@resultClass">
-                            @Model.BP.Category
+                            @Model.BP.Category.ToString()
+                        </div>
+
+                        <!-- Separate panel for human-friendly title + advice -->
+                        <div class="@resultClass mt-2">
+                            <strong>@Model.BP.CategoryDisplayName</strong>
+                            <br />
+                            @Html.Raw(Model.BP.AdviceText.Replace("\n", "<br />"))
                         </div>
                     </div>
                 }
 
-                @* BMI result (always rendered) *@
+                <!-- BMI RESULT PANEL (Test-Compatible) -->
                 <div class="form-group mt-3">
                     <label>BMI Result:</label>
+
                     <div id="bmiResult" class="@bmiResultClass">
-                        @if (Model.BMI.HasValue)
+                        @if (Model.BMI.HasValue && !string.IsNullOrEmpty(Model.BMICategory))
                         {
-                            @($"{Model.BMI} ({Model.BMICategory})")
+                            <!-- This is what your Playwright/Selenium tests expect -->
+                            <strong>@($"{Model.BMI} ({Model.BMICategory})")</strong>
+                            <br />
+                            @Html.Raw(Model.BMIAdvice.Replace("\n", "<br />"))
                         }
                         else
                         {

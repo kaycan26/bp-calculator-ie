@@ -10,6 +10,9 @@ on:
       - main
 
 jobs:
+  # ==========================
+  # 1) Build, unit/BDD tests, SonarCloud
+  # ==========================
   build-test-sonar:
     runs-on: ubuntu-latest
 
@@ -56,8 +59,7 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-      # ---- Tests ----
-      # Unit tests with coverage (for SonarCloud)
+      # ---- Tests (unit + BDD only here) ----
       - name: Unit tests with coverage
         run: >
           dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj
@@ -66,11 +68,45 @@ jobs:
           /p:CoverletOutput=./TestResults/
           /p:CoverletOutputFormat=opencover
 
-      # BDD tests
       - name: BDD tests
         run: >
           dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj
           --no-build --configuration Release
+      # ---- End tests ----
+
+      # ---- SonarCloud end ----
+      - name: SonarCloud - End analysis
+        run: dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+      # ------------------------
+
+
+  # ==========================
+  # 2) UI tests (Playwright + Selenium)
+  # ==========================
+  ui-tests:
+    name: Playwright & Selenium UI Tests
+    runs-on: ubuntu-latest
+    needs: build-test-sonar       # run only if build-test-sonar succeeds
+
+    # For Playwright/Selenium to hit the deployed app, set this
+    # to your real app URL (or keep localhost if you later start the app in the job)
+    env:
+      APP_URL: ${{ secrets.APP_URL }} # or "https://yourapp.azurewebsites.net"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
 
       # Playwright UI tests
       - name: Playwright tests
@@ -83,9 +119,3 @@ jobs:
         run: >
           dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj
           --no-build --configuration Release
-      # ---- End tests ----
-
-      # ---- SonarCloud end ----
-      - name: SonarCloud - End analysis
-        run: dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
-      # ------------------------
