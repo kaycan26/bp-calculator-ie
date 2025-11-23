@@ -7,7 +7,6 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build-test:
     runs-on: ubuntu-latest
 
@@ -26,6 +25,7 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
+      # ---- Unit & BDD tests ----
       - name: Run Unit Tests
         run: dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj --no-build --configuration Release
 
@@ -46,13 +46,19 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      # ⭐ IMPORTANT — install Playwright browsers
-      - name: Install Playwright Browsers
+      # 1) Build Playwright tests so the playwright.ps1 script exists
+      - name: Build Playwright tests (Debug)
+        run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Debug
+
+      # 2) Install Playwright browsers on the GitHub runner
+      - name: Install Playwright browsers
         run: pwsh BPCalculator.PlaywrightTests/bin/Debug/net8.0/playwright.ps1 install
 
+      # 3) Run Playwright tests
       - name: Playwright UI Tests
-        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release
+        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Debug
 
+      # 4) Run Selenium tests
       - name: Selenium UI Tests
         run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release
 
@@ -70,11 +76,11 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      # ⭐ Start Web API for k6 load test
+      # Start the web app so k6 can hit http://localhost:5000
       - name: Start Web App
         run: |
           dotnet run --project BPCalculator/BPCalculator.csproj --urls http://localhost:5000 &
-          sleep 5
+          sleep 10
 
       - name: Run k6 load test
         run: |
