@@ -25,7 +25,7 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-      # ---- Unit Tests + BDD Tests ----
+      # ---- Unit & BDD tests ----
       - name: Run Unit Tests
         run: dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj --no-build --configuration Release
 
