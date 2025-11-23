@@ -31,6 +31,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -45,6 +46,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -64,6 +66,7 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      # Install Google Chrome so Selenium can use it
       - name: Install Google Chrome
         run: |
           sudo apt-get update
@@ -72,6 +75,12 @@ jobs:
           echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
+
+      # Start the web app so Selenium can hit http://localhost:5000
+      - name: Start web app
+        run: |
+          dotnet run --project BPCalculator/BPCalculator.csproj --urls "http://localhost:5000" &
+          sleep 10
 
       - name: Run Selenium tests
         run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.vbproj --configuration Release
@@ -83,16 +92,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
+      # Build the Playwright test project
       - name: Build Playwright project
         run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Release
 
+      # Install Playwright browsers from the generated script
       - name: Install Playwright browsers
         run: pwsh BPCalculator.PlaywrightTests/bin/Release/net8.0/playwright.ps1 install --with-deps
 
+      # Start the web app so Playwright can hit http://localhost:5000
       - name: Start web app
         run: |
           dotnet run --project BPCalculator/BPCalculator.csproj --urls "http://localhost:5000" &
@@ -118,5 +131,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y k6
 
+      # Start the web app so k6 can load test it
+      - name: Start web app
+        run: |
+          dotnet run --project BPCalculator/BPCalculator.csproj --urls "http://localhost:5000" &
+          sleep 10
+
       - name: Run k6 performance test
         run: k6 run k6/bp_performance_test.js
+        # If you want k6 failures NOT to fail the pipeline, uncomment:
+        # continue-on-error: true
