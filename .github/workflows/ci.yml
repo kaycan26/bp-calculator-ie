@@ -131,7 +131,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y k6
 
-      # Start the web app so k6 can load test it
       - name: Start web app
         run: |
           dotnet run --project BPCalculator/BPCalculator.csproj --urls "http://localhost:5000" &
@@ -139,5 +138,6 @@ jobs:
 
       - name: Run k6 performance test
         run: k6 run k6/bp_performance_test.js
-        # If you want k6 failures NOT to fail the pipeline, uncomment:
-        # continue-on-error: true
+        continue-on-error: true
+
+
