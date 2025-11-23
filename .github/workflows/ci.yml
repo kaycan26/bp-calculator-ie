@@ -47,14 +47,18 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      # Build the Playwright project so playwright.ps1 is generated
       - name: Restore Playwright project
         run: dotnet restore BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj
 
       - name: Build Playwright project
         run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release
 
-      # 👉 This is the step your error message keeps asking for
+      # 👉 Start the web app that Playwright/Selenium will hit
+      - name: Start BPCalculator app
+        run: |
+          dotnet run --project BPCalculator/BPCalculator.csproj --configuration Release --urls "http://localhost:5000" &
+          sleep 15
+
       - name: Install Playwright browsers
         run: pwsh BPCalculator.PlaywrightTests/bin/Release/net8.0/playwright.ps1 install --with-deps
 
