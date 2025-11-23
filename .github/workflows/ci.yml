@@ -77,6 +77,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run k6 load test
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      # Start the BPCalculator web app on localhost:5000
+      - name: Start BPCalculator app
         run: |
-          docker run --rm -i grafana/k6 run - < ./k6/bp_performance_test.js
+          dotnet run --project BPCalculator/BPCalculator.csproj --configuration Release --urls "http://localhost:5000" &
+          sleep 15
+
+      # Install k6 on the runner
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      # Run the k6 performance test against the running app
+      - name: Run k6 load test
+        run: k6 run k6/bp_performance_test.js
+
