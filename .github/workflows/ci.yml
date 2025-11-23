@@ -32,8 +32,11 @@ jobs:
     needs: build-test
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
@@ -46,8 +49,11 @@ jobs:
     needs: build-test
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
@@ -60,10 +66,20 @@ jobs:
     needs: build-test
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      # If your tests need a system browser/driver, keep this.
+      # If the NuGet selenium driver is enough, you can remove it.
+      - name: Install browsers (optional)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
 
       - name: Run Selenium tests
         run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release
@@ -74,17 +90,25 @@ jobs:
     needs: build-test
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Install Playwright
-        run: pwsh ./BPCalculator.PlaywrightTests/bin/Debug/net8.0/playwright.ps1 install --with-deps
-        # adjust path if needed
+      # Build the Playwright test project
+      - name: Build Playwright project
+        run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Release
 
+      # Install Playwright browsers from the generated script
+      - name: Install Playwright browsers
+        run: pwsh BPCalculator.PlaywrightTests/bin/Release/net8.0/playwright.ps1 install --with-deps
+
+      # Run Playwright tests
       - name: Run Playwright tests
-        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release
+        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Release
 
   k6-performance:
     name: k6-performance
@@ -92,12 +116,15 @@ jobs:
     needs: build-test
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install k6
         run: |
           sudo apt-get update
           sudo apt-get install -y k6
 
-      - name: Run k6 tests
+      - name: Run k6 performance test
         run: k6 run k6/bp_performance_test.js
+        # If you don't want failures to break the pipeline, add:
+        # continue-on-error: true
