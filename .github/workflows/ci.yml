@@ -7,6 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
+  # -------------------- BUILD + BASIC TESTS --------------------
   build-test:
     runs-on: ubuntu-latest
 
@@ -32,6 +33,7 @@ jobs:
       - name: Run BDD Tests
         run: dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj --no-build --configuration Release
 
+  # -------------------- PLAYWRIGHT & SELENIUM UI TESTS --------------------
   ui-tests:
     runs-on: ubuntu-latest
     needs: build-test
@@ -45,12 +47,21 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      # Build the Playwright project so playwright.ps1 is generated
+      - name: Build Playwright project
+        run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release --no-restore
+
+      # 👉 This is the step your error message keeps asking for
+      - name: Install Playwright browsers
+        run: pwsh BPCalculator.PlaywrightTests/bin/Release/net8.0/playwright.ps1 install --with-deps
+
       - name: Playwright UI Tests
-        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release
+        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release --no-build
 
       - name: Selenium UI Tests
-        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release
+        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release --no-build
 
+  # -------------------- k6 PERFORMANCE TESTS --------------------
   k6-performance:
     runs-on: ubuntu-latest
     needs: build-test
