@@ -41,7 +41,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Run unit tests
-        run: dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj --configuration Release
+        run: dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj --configuration Release --no-build
 
   bdd-tests:
     name: bdd-tests
@@ -58,7 +58,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Run BDD tests
-        run: dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj --configuration Release
+        run: dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj --configuration Release --no-build
 
   selenium-tests:
     name: selenium-tests
@@ -74,15 +74,15 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # If your tests need a system browser/driver, keep this.
-      # If the NuGet selenium driver is enough, you can remove it.
+      # If your Selenium tests need a system browser/driver, keep this.
+      # If NuGet brings the driver and it's already working, you can remove it.
       - name: Install browsers (optional)
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
 
       - name: Run Selenium tests
-        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release
+        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release --no-build
 
   playwright-tests:
     name: playwright-tests
@@ -106,9 +106,15 @@ jobs:
       - name: Install Playwright browsers
         run: pwsh BPCalculator.PlaywrightTests/bin/Release/net8.0/playwright.ps1 install --with-deps
 
+      # Start the web application so Playwright can reach http://localhost:5000
+      - name: Start web app
+        run: |
+          dotnet run --project BPCalculator/BPCalculator.csproj --urls "http://localhost:5000" &
+          sleep 10
+
       # Run Playwright tests
       - name: Run Playwright tests
-        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Release
+        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Release --no-build
 
   k6-performance:
     name: k6-performance
@@ -126,5 +132,5 @@ jobs:
 
       - name: Run k6 performance test
         run: k6 run k6/bp_performance_test.js
-        # If you don't want failures to break the pipeline, add:
+        # If you don't want performance failures to fail the whole pipeline, use:
         # continue-on-error: true
