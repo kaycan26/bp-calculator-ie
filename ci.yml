@@ -1,5 +1,5 @@
 ﻿  # -------------------- PLAYWRIGHT UI TESTS --------------------
-  ui-tests:
+    ui-tests:
     runs-on: ubuntu-latest
     needs: build-test
 
@@ -10,26 +10,31 @@
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "8.0.x"
 
       - name: Restore Playwright project
         run: dotnet restore BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj
 
       - name: Build Playwright tests
         run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj \
-             --configuration Debug --no-restore
+             --no-restore --configuration Release
 
-      # 1) Install the Playwright CLI as a global dotnet tool
+      # Install the Playwright CLI as a global dotnet tool
       - name: Install Playwright CLI
         run: dotnet tool install --global Microsoft.Playwright.CLI
 
-      # 2) Use the CLI to download browsers on the runner
+      # Download browsers (Chromium/Firefox/WebKit) on the runner
       - name: Install Playwright browsers
         run: |
           export PATH="$PATH:/root/.dotnet/tools"
           playwright install --with-deps
 
-      # 3) Run the UI tests
+      # Run Playwright UI tests
       - name: Playwright UI Tests
         run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj \
-             --configuration Debug --no-build
+             --no-build --configuration Release
+
+      # Your Selenium tests can still run afterwards if you like:
+      - name: Selenium UI Tests
+        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj \
+             --no-build --configuration Release
