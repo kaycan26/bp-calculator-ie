@@ -2,14 +2,9 @@
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  # ==========================================================
-  # 1) Build, Unit + BDD tests
-  # ==========================================================
+  # -------------------- BUILD + BASIC TESTS --------------------
   build-test:
     runs-on: ubuntu-latest
 
@@ -20,60 +15,23 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: '8.0.x'
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore BPCalculator.sln
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build BPCalculator.sln --configuration Debug --no-restore
 
-      - name: Run Unit Tests
-        run: dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj --no-build --configuration Release
+      # This will run your “normal” tests (unit, etc.)
+      - name: Run non-UI tests
+        run: dotnet test BPCalculator.sln --configuration Debug --no-build
+        # if you later add TestCategory attributes you can filter here
 
-      - name: Run BDD Tests
-        run: dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj --no-build --configuration Release
-
-
-  # ==========================================================
-  # 2) UI tests (Playwright + Selenium)
-  # ==========================================================
+  # -------------------- PLAYWRIGHT UI TESTS --------------------
   ui-tests:
-  runs-on: ubuntu-latest
-  needs: build-test    # if you have a build-test job; otherwise you can remove this
-
-  steps:
-    - name: Checkout
-    - uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Restore
-      run: dotnet restore BPCalculator.sln
-
-    # 1) Build the Playwright test project so playwright.ps1 exists
-    - name: Build Playwright tests
-      run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Debug
-
-    # 2) Install Playwright browsers on the GitHub runner
-    - name: Install Playwright browsers
-      run: pwsh BPCalculator.PlaywrightTests/bin/Debug/net8.0/playwright.ps1 install --with-deps
-
-    # 3) Run the UI tests
-    - name: Playwright UI Tests
-      run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Debug --no-build
-
-
-  # ==========================================================
-  # 3) k6 performance tests
-  # ==========================================================
-  k6-performance:
     runs-on: ubuntu-latest
     needs: build-test
-    continue-on-error: true   # Allow k6 threshold failure
 
     steps:
       - name: Checkout
@@ -82,18 +40,37 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: '8.0.x'
 
-      - name: Build Web App
-        run: dotnet build BPCalculator/BPCalculator.csproj -c Release
+      - name: Restore Playwright project
+        run: dotnet restore BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj
 
-      - name: Start Web App
+      # Build so that bin/Debug/net8.0/playwright.ps1 exists
+      - name: Build Playwright tests
+        run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj \
+             --configuration Debug --no-restore
+
+      # ⬇️ THIS FIXES THE ERROR YOU SAW
+      - name: Install Playwright browsers
+        run: pwsh BPCalculator.PlaywrightTests/bin/Debug/net8.0/playwright.ps1 install --with-deps
+
+      - name: Playwright UI Tests
+        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj \
+             --configuration Debug --no-build
+
+  # -------------------- k6 PERFORMANCE TESTS --------------------
+  k6-performance:
+    runs-on: ubuntu-latest
+    needs: build-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install k6
         run: |
-          dotnet run --project BPCalculator/BPCalculator.csproj -c Release --urls http://localhost:5000 &
-          sleep 15
+          sudo apt-get update
+          sudo apt-get install -y k6
 
-      - name: Setup k6
-        uses: grafana/setup-k6-action@v0.2.0
-
-      - name: Run k6 load test
-        run: k6 run ./k6/bp_performance_test.js
+      - name: Run k6 performance test
+        run: k6 run k6/bp_performance_test.js
