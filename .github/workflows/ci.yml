@@ -12,11 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
@@ -32,11 +30,8 @@ jobs:
     needs: build-test
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
@@ -49,11 +44,8 @@ jobs:
     needs: build-test
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
@@ -66,22 +58,19 @@ jobs:
     needs: build-test
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # Optional: if you need a system browser/driver
       - name: Install browsers (optional)
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
 
       - name: Run Selenium tests
-        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.vbproj --configuration Release --no-build
+        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.vbproj --configuration Release
 
   playwright-tests:
     name: playwright-tests
@@ -89,29 +78,22 @@ jobs:
     needs: build-test
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # Build the Playwright test project
       - name: Build Playwright project
         run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Release
 
-      # Install Playwright browsers from the generated script
       - name: Install Playwright browsers
         run: pwsh BPCalculator.PlaywrightTests/bin/Release/net8.0/playwright.ps1 install --with-deps
 
-      # Start the web application so Playwright can reach http://localhost:5000
       - name: Start web app
         run: |
           dotnet run --project BPCalculator/BPCalculator.csproj --urls "http://localhost:5000" &
           sleep 10
 
-      # Run Playwright tests
       - name: Run Playwright tests
         run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Release --no-build
 
@@ -121,17 +103,16 @@ jobs:
     needs: build-test
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install k6
         run: |
-          curl -fsSL https://dl.k6.io/deb/gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates gnupg
+          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
           sudo apt-get update
           sudo apt-get install -y k6
 
       - name: Run k6 performance test
         run: k6 run k6/bp_performance_test.js
-        # If you don't want perf failures to fail the whole pipeline, uncomment:
-        # continue-on-error: true
