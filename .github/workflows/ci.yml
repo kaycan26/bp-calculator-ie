@@ -66,7 +66,7 @@ jobs:
         run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release --no-build
 
       - name: Selenium UI Tests
-        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release --no-build
+        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.vbproj --configuration Release --no-build
 
   # -------------------- k6 PERFORMANCE TESTS --------------------
   k6-performance:
