@@ -48,8 +48,11 @@ jobs:
           dotnet-version: "8.0.x"
 
       # Build the Playwright project so playwright.ps1 is generated
+      - name: Restore Playwright project
+        run: dotnet restore BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj
+
       - name: Build Playwright project
-        run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release --no-restore
+        run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release
 
       # 👉 This is the step your error message keeps asking for
       - name: Install Playwright browsers
