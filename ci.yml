@@ -7,6 +7,9 @@ on:
     branches: [ "main" ]
 
 jobs:
+  # ===========================
+  # 1) Build + Unit + BDD tests
+  # ===========================
   build-test:
     runs-on: ubuntu-latest
 
@@ -25,14 +28,15 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-      # ---- Unit & BDD tests ----
       - name: Run Unit Tests
         run: dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj --no-build --configuration Release
 
       - name: Run BDD Tests
         run: dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj --no-build --configuration Release
 
-
+  # ===========================
+  # 2) UI tests (Playwright + Selenium)
+  # ===========================
   ui-tests:
     runs-on: ubuntu-latest
     needs: build-test
@@ -46,23 +50,23 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      # 1) Build Playwright tests so the playwright.ps1 script exists
-      - name: Build Playwright tests (Debug)
-        run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Debug
+      # Build Playwright test project so playwright.ps1 is generated
+      - name: Build Playwright test project
+        run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release
 
-      # 2) Install Playwright browsers on the GitHub runner
+      # Install Playwright browsers on the runner
       - name: Install Playwright browsers
-        run: pwsh BPCalculator.PlaywrightTests/bin/Debug/net8.0/playwright.ps1 install
+        run: pwsh BPCalculator.PlaywrightTests/bin/Release/net8.0/playwright.ps1 install
 
-      # 3) Run Playwright tests
       - name: Playwright UI Tests
-        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Debug
+        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --no-build --configuration Release
 
-      # 4) Run Selenium tests
       - name: Selenium UI Tests
         run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release
 
-
+  # ===========================
+  # 3) k6 performance tests
+  # ===========================
   k6-performance:
     runs-on: ubuntu-latest
     needs: build-test
@@ -76,12 +80,12 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      # Start the web app so k6 can hit http://localhost:5000
+      # Start the Web API on the runner so k6 can hit http://localhost:5000
       - name: Start Web App
         run: |
-          dotnet run --project BPCalculator/BPCalculator.csproj --urls http://localhost:5000 &
-          sleep 10
+          dotnet run --project BPCalculator/BPCalculator.csproj --configuration Release --urls http://localhost:5000 &
+          sleep 10  # give the app time to start
 
       - name: Run k6 load test
         run: |
-          docker run --rm -i grafana/k6 run - < ./k6/bp_performance_test.js
+          docker run --rm --network host -i grafana/k6 run - < ./k6/bp_performance_test.js
