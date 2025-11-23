@@ -39,32 +39,32 @@ jobs:
   # 2) UI tests (Playwright + Selenium)
   # ==========================================================
   ui-tests:
-    runs-on: ubuntu-latest
-    needs: build-test
-    continue-on-error: true   # Allow failures but continue pipeline
+  runs-on: ubuntu-latest
+  needs: build-test    # if you have a build-test job; otherwise you can remove this
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  steps:
+    - name: Checkout
+    - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
 
-      # Build Playwright project so playwright.ps1 exists
-      - name: Build Playwright tests project
-        run: dotnet build ./BPCalculator.PlaywrightTests/*.csproj -c Release
+    - name: Restore
+      run: dotnet restore BPCalculator.sln
 
-      # Install Playwright browsers
-      - name: Install Playwright browsers
-        run: pwsh ./BPCalculator.PlaywrightTests/bin/Release/net8.0/playwright.ps1 install
+    # 1) Build the Playwright test project so playwright.ps1 exists
+    - name: Build Playwright tests
+      run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Debug
 
-      - name: Playwright UI Tests
-        run: dotnet test ./BPCalculator.PlaywrightTests/*.csproj -c Release --no-build
+    # 2) Install Playwright browsers on the GitHub runner
+    - name: Install Playwright browsers
+      run: pwsh BPCalculator.PlaywrightTests/bin/Debug/net8.0/playwright.ps1 install --with-deps
 
-      - name: Selenium UI Tests
-        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release
+    # 3) Run the UI tests
+    - name: Playwright UI Tests
+      run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj -c Debug --no-build
 
 
   # ==========================================================
