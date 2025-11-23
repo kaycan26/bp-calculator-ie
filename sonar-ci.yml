@@ -19,8 +19,6 @@ jobs:
 
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_ORG: ${{ secrets.SONAR_ORG }}
-      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
 
     steps:
       - name: Checkout repository
@@ -43,10 +41,10 @@ jobs:
       - name: SonarCloud - Begin analysis
         run: >
           dotnet-sonarscanner begin
-          /k:"$SONAR_PROJECT_KEY"
-          /o:"$SONAR_ORG"
+          /k:"kaycan26_bp-calculator-ie"
+          /o:"kaycan26"
           /d:sonar.host.url="https://sonarcloud.io"
-          /d:sonar.token="$SONAR_TOKEN"
+          /d:sonar.login="$SONAR_TOKEN"
           /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml"
       # --------------------------
 
@@ -67,5 +65,5 @@ jobs:
 
       # ---- SonarCloud end ----
       - name: SonarCloud - End analysis
-        run: dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+        run: dotnet-sonarscanner end /d:sonar.login="$SONAR_TOKEN"
       # ------------------------
