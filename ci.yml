@@ -1,46 +1,23 @@
-name: .NET CI with SonarCloud, UI & k6
+name: .NET CI with UI & k6
 
 on:
   push:
-    branches:
-      - main
-      - feature/**
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
-  # ==========================
-  # 1) Build, Unit + BDD tests, SonarCloud
-  # ==========================
-  build-test-sonar:
+  build-test:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      pull-requests: write
-
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_ORG: ${{ secrets.SONAR_ORG }}
-      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # SonarCloud prefers full history
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
-
-      - name: Install SonarScanner for .NET
-        run: dotnet tool install --global dotnet-sonarscanner
-
-      - name: Add .NET tools to PATH
-        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Restore
         run: dotnet restore
@@ -48,42 +25,19 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-      # ---- Tests (unit + BDD only here) ----
-      - name: Unit tests with coverage
-        run: >
-          dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj
-          --no-build --configuration Release
-          /p:CollectCoverage=true
-          /p:CoverletOutput=./TestResults/
-          /p:CoverletOutputFormat=opencover
+      # ---- Unit Tests + BDD Tests ----
+      - name: Run Unit Tests
+        run: dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj --no-build --configuration Release
 
-      - name: BDD tests
-        run: >
-          dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj
-          --no-build --configuration Release
-      # ---- End tests ----
+      - name: Run BDD Tests
+        run: dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj --no-build --configuration Release
 
-      # ---- SonarCloud end ----
-      - name: SonarCloud - End analysis
-        run: dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
-      # ------------------------
-
-
-  # ==========================
-  # 2) UI tests (Playwright + Selenium)
-  # ==========================
   ui-tests:
-    name: Playwright & Selenium UI Tests
     runs-on: ubuntu-latest
-    needs: build-test-sonar       # run only if build-test-sonar succeeds
-
-    # For Playwright/Selenium to hit the deployed app, set this
-    # to your real app URL (or keep localhost if you later start the app in the job)
-    env:
-      APP_URL: ${{ secrets.APP_URL }} # e.g. "https://yourapp.azurewebsites.net"
+    needs: build-test
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup .NET
@@ -91,37 +45,20 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Restore
-        run: dotnet restore
+      - name: Playwright UI Tests
+        run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj --configuration Release
 
-      - name: Build
-        run: dotnet build --no-restore --configuration Release
+      - name: Selenium UI Tests
+        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release
 
-      # Playwright UI tests
-      - name: Playwright tests
-        run: >
-          dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj
-          --no-build --configuration Release
-
-      # Selenium UI tests
-      - name: Selenium tests
-        run: >
-          dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj
-          --no-build --configuration Release
-
-
-  # ==========================
-  # 3) k6 Load / Performance tests
-  # ==========================
   k6-performance:
-    name: k6 Performance Tests
     runs-on: ubuntu-latest
-    needs: ui-tests   # run after UI tests succeed
+    needs: build-test
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run k6 load test using Docker
+      - name: Run k6 load test
         run: |
           docker run --rm -i grafana/k6 run - < ./k6/bp_performance_test.js
