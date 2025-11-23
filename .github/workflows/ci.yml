@@ -74,15 +74,14 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # If your Selenium tests need a system browser/driver, keep this.
-      # If NuGet brings the driver and it's already working, you can remove it.
+      # Optional: if you need a system browser/driver
       - name: Install browsers (optional)
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
 
       - name: Run Selenium tests
-        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj --configuration Release --no-build
+        run: dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.vbproj --configuration Release --no-build
 
   playwright-tests:
     name: playwright-tests
@@ -127,10 +126,12 @@ jobs:
 
       - name: Install k6
         run: |
+          curl -fsSL https://dl.k6.io/deb/gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
           sudo apt-get update
           sudo apt-get install -y k6
 
       - name: Run k6 performance test
         run: k6 run k6/bp_performance_test.js
-        # If you don't want performance failures to fail the whole pipeline, use:
+        # If you don't want perf failures to fail the whole pipeline, uncomment:
         # continue-on-error: true
