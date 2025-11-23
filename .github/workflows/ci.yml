@@ -1,0 +1,138 @@
+name: .NET CI with SonarCloud, UI & k6
+
+on:
+  push:
+    branches:
+      - main
+      - feature/**
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ==========================
+  # 1) Build, Unit + BDD tests, SonarCloud
+  # ==========================
+  build-test-sonar:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_ORG: ${{ secrets.SONAR_ORG }}
+      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # SonarCloud prefers full history
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install SonarScanner for .NET
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      # ---- SonarCloud begin ----
+      - name: SonarCloud - Begin analysis
+        run: >
+          dotnet-sonarscanner begin
+          /k:"$SONAR_PROJECT_KEY"
+          /o:"$SONAR_ORG"
+          /d:sonar.host.url="https://sonarcloud.io"
+          /d:sonar.token="$SONAR_TOKEN"
+          /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+      # --------------------------
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # ---- Tests (unit + BDD only here) ----
+      - name: Unit tests with coverage
+        run: >
+          dotnet test BPCalculator.UnitTests/BPCalculator.UnitTests.csproj
+          --no-build --configuration Release
+          /p:CollectCoverage=true
+          /p:CoverletOutput=./TestResults/
+          /p:CoverletOutputFormat=opencover
+
+      - name: BDD tests
+        run: >
+          dotnet test BPCalculator.BddTests/BPCalculator.BddTests.csproj
+          --no-build --configuration Release
+      # ---- End tests ----
+
+      # ---- SonarCloud end ----
+      - name: SonarCloud - End analysis
+        run: dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+      # ------------------------
+
+
+  # ==========================
+  # 2) UI tests (Playwright + Selenium)
+  # ==========================
+  ui-tests:
+    name: Playwright & Selenium UI Tests
+    runs-on: ubuntu-latest
+    needs: build-test-sonar       # run only if build-test-sonar succeeds
+
+    # For Playwright/Selenium to hit the deployed app, set this
+    # to your real app URL (or keep localhost if you later start the app in the job)
+    env:
+      APP_URL: ${{ secrets.APP_URL }} # e.g. "https://yourapp.azurewebsites.net"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      # Playwright UI tests
+      - name: Playwright tests
+        run: >
+          dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj
+          --no-build --configuration Release
+
+      # Selenium UI tests
+      - name: Selenium tests
+        run: >
+          dotnet test BPCalculator.SeleniumTests/BPCalculator.SeleniumTests.csproj
+          --no-build --configuration Release
+
+
+  # ==========================
+  # 3) k6 Load / Performance tests
+  # ==========================
+  k6-performance:
+    name: k6 Performance Tests
+    runs-on: ubuntu-latest
+    needs: ui-tests   # run after UI tests succeed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run k6 load test using Docker
+        run: |
+          docker run --rm -i grafana/k6 run - < ./k6/bp_performance_test.js
