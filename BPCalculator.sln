@@ -23,6 +23,11 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BPCalculator.SeleniumTests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BPCalculator.PerformanceTests", "BPCalculator.PerformanceTests\BPCalculator.PerformanceTests.csproj", "{AA0BD07F-4F77-4C98-859C-C46DCDD8438A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k6", "k6", "{2E1ED0D3-E753-4CCC-825B-9E0C0881BA63}"
+	ProjectSection(SolutionItems) = preProject
+		k6\bp_performance_test.js = k6\bp_performance_test.js
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
