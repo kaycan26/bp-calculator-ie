@@ -18,15 +18,12 @@
       run: dotnet build BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj \
            --no-restore --configuration Release
 
-    # Install Playwright CLI
     - name: Install Playwright CLI
       run: dotnet tool install --global Microsoft.Playwright.CLI
 
-    # Install browsers (WORKING FIX)
     - name: Install Playwright browsers
       run: ~/.dotnet/tools/playwright install --with-deps
 
-    # Run UI tests
     - name: Playwright UI Tests
       run: dotnet test BPCalculator.PlaywrightTests/BPCalculator.PlaywrightTests.csproj \
            --no-build --configuration Release
