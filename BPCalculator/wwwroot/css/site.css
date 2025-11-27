@@ -1,58 +1,120 @@
-﻿/* ---------- Result Panels (BP + BMI) ---------- */
+﻿/* ============================================
+   GLOBAL / LAYOUT
+   ============================================ */
 
-.bp-result-panel,
-.bmi-result-panel {
-    padding: 1rem;
-    border-radius: 4px;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    color: #222;
-    line-height: 1.4;
+body {
+    padding-top: 70px;
+    background: #f5f7fb; /* soft grey-blue background */
 }
 
-/* BP COLOUR THEMES */
-.bp-low {
-    background-color: #b3e5fc !important; /* light blue */
-    border-left: 5px solid #0277bd !important; /* blue */
+.container {
+    max-width: 1140px;
 }
 
-.bp-ideal {
-    background-color: #c8f7d4 !important; /* light green */
-    border-left: 5px solid #2e8b57 !important; /* dark green */
+/* ============================================
+   FORM / PANEL CARD FRAMES (GREEN BORDER + RADIUS)
+   ============================================ */
+
+.bp-card,
+.card.info-card-bp,
+.card.info-card-bmi {
+    border: 3px solid #28a745 !important; /* thicker green frame */
+    border-radius: 28px !important; /* rounded corners */
+    box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+    overflow: hidden; /* keeps inner bg inside radius */
+    background-color: #ffffff;
 }
 
-.bp-prehigh {
-    background-color: #ffe9bf !important; /* light orange */
-    border-left: 5px solid #ff9800 !important; /* orange */
+    /* inner card-body is just content – no extra borders */
+    .bp-card .card-body,
+    .card.info-card-bp .card-body,
+    .card.info-card-bmi .card-body {
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none;
+    }
+
+/* ============================================
+   SMALL RESULT BOXES (BP + BMI)
+   ============================================ */
+
+.result-box {
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    margin-top: 0.35rem;
 }
 
-.bp-high {
-    background-color: #ffcdd2 !important; /* light red */
-    border-left: 5px solid #c62828 !important; /* red */
+    .result-box.alert {
+        margin-bottom: 0 !important;
+    }
+
+/* ============================================
+   FORM CONTROLS
+   ============================================ */
+
+.form-control {
+    border-radius: 10px;
+    border-color: #ced4da;
+    box-shadow: none;
+    transition: border-color 0.12s ease-out, box-shadow 0.12s ease-out;
 }
 
-/* BMI COLOUR THEMES */
-.bmi-underweight {
-    background-color: #b3e5fc !important;
-    border-left: 5px solid #0277bd !important;
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.15rem rgba(40, 167, 69, 0.25);
+    }
+
+/* ============================================
+   SUBMIT BUTTON
+   ============================================ */
+
+.btn-success {
+    border-radius: 999px; /* pill shape */
+    font-weight: 600;
+    padding-left: 24px;
+    padding-right: 24px;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.35);
+    border: none;
+    transition: background-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
-.bmi-normal {
-    background-color: #c8f7d4 !important;
-    border-left: 5px solid #2e8b57 !important;
+    .btn-success:hover {
+        background-color: #23913f;
+        box-shadow: 0 6px 16px rgba(40, 167, 69, 0.45);
+    }
+
+    .btn-success:active {
+        box-shadow: 0 3px 8px rgba(40, 167, 69, 0.35);
+    }
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+h4 {
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+    font-weight: 700;
 }
 
-.bmi-overweight {
-    background-color: #ffe9bf !important;
-    border-left: 5px solid #ff9800 !important;
+h5 {
+    letter-spacing: 0.01em;
+    font-weight: 700;
 }
 
-.bmi-obese {
-    background-color: #ffcdd2 !important;
-    border-left: 5px solid #c62828 !important;
+hr {
+    border-top: 1px solid #dde1ec;
 }
 
-.bmi-unknown {
-    background-color: #f5f5f5 !important;
-    border-left: 5px solid #aaaaaa !important;
+/* ============================================
+   RESPONSIVE SPACING
+   ============================================ */
+
+@media (max-width: 991.98px) {
+    .bp-card,
+    .card.info-card-bp,
+    .card.info-card-bmi {
+        margin-bottom: 1rem;
+    }
 }
